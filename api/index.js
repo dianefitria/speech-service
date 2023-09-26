@@ -1,7 +1,5 @@
 import express from 'express';
 import axios, { post } from 'axios';
-import { createWriteStream, createReadStream, unlinkSync } from 'fs';
-import { join } from 'path';
 
 const app = express();
 
@@ -26,22 +24,10 @@ app.post('/api/audio/transcriptions', async (req, res) => {
   })
 });
 
-async function downloadFile(url, destinationPath) {
+async function downloadFile(url) {
   try {
-    const response = await axios({
-      method: 'get',
-      url: url,
-      responseType: 'stream',
-    });
-
-    const writer = createWriteStream(destinationPath);
-
-    response.data.pipe(writer);
-
-    return new Promise((resolve, reject) => {
-      writer.on('finish', resolve);
-      writer.on('error', reject);
-    });
+    const response = await axios.get(url, { responseType: 'arraybuffer' });
+    return response.data;
   } catch (error) {
     throw new Error(`Error downloading file: ${error.message}`);
   }
@@ -49,13 +35,12 @@ async function downloadFile(url, destinationPath) {
 
 async function audioTranscription(audioUrl, apiUrl, payload) {
   const filename = getFilename(audioUrl);
-  const tempFilePath = join('/tmp/' + filename);
 
   try {
-    await downloadFile(audioUrl, tempFilePath);
+    const fileData = await downloadFile(audioUrl);
     
     const formData = new FormData();
-    formData.append('file', createReadStream(tempFilePath));
+    formData.append('file', fileData, { filename: filename });
     for (const key in payload) {
       formData.append(key, payload[key]);
     }
@@ -66,8 +51,6 @@ async function audioTranscription(audioUrl, apiUrl, payload) {
         'Content-Type': 'multipart/form-data',
       },
     });
-
-    unlinkSync(tempFilePath);
 
     return response.data;
   } catch (error) {
