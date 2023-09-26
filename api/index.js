@@ -1,5 +1,5 @@
 import express from 'express';
-import axios, { post } from 'axios';
+import axios from 'axios';
 
 const app = express();
 
@@ -26,8 +26,9 @@ app.post('/api/audio/transcriptions', async (req, res) => {
 
 async function downloadFile(url) {
   try {
-    const response = await axios.get(url, { responseType: 'blob' });
-    return response.data;
+    const response = await axios.get(url, { responseType: 'arraybuffer' });
+    const blob = new Blob([response.data]);
+    return blob;
   } catch (error) {
     throw new Error(`Error downloading file: ${error.message}`);
   }
@@ -40,12 +41,12 @@ async function audioTranscription(audioUrl, apiUrl, payload) {
     const fileData = await downloadFile(audioUrl);
     
     const formData = new FormData();
-    formData.append('file', fileData, filename);
+    formData.append('file', fileData, { filename: filename });
     for (const key in payload) {
       formData.append(key, payload[key]);
     }
 
-    const response = await post(apiUrl, formData, {
+    const response = await axios.post(apiUrl, formData, {
       headers: {
         'Authorization': 'Bearer ' + process.env.OPENAI_API_KEY,
         'Content-Type': 'multipart/form-data',
