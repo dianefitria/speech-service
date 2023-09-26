@@ -77,7 +77,7 @@ async function audioTranscription(audioUrl, apiUrl, payload) {
 
 function getFilename(url) {
   const url_components = url.split('/');
-  const full_filename = url_components[-1];
+  const full_filename = url_components[(url_components.length - 1)];
   const clean_filename = full_filename.split('?')[0];
   
   return clean_filename;
