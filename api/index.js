@@ -48,7 +48,7 @@ async function downloadFile(url, destinationPath) {
 }
 
 async function audioTranscription(audioUrl, apiUrl, payload) {
-  const tempFilePath = join('tmp/tempfile.txt');
+  const tempFilePath = join('/tmp/tempfile.txt');
 
   try {
     await downloadFile(audioUrl, tempFilePath);
