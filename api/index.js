@@ -26,7 +26,7 @@ app.post('/api/audio/transcriptions', async (req, res) => {
 
 async function downloadFile(url) {
   try {
-    const response = await axios.get(url, { responseType: 'arraybuffer' });
+    const response = await axios.get(url, { responseType: 'blob' });
     return response.data;
   } catch (error) {
     throw new Error(`Error downloading file: ${error.message}`);
@@ -40,7 +40,7 @@ async function audioTranscription(audioUrl, apiUrl, payload) {
     const fileData = await downloadFile(audioUrl);
     
     const formData = new FormData();
-    formData.append('file', fileData, { filename: filename });
+    formData.append('file', fileData, filename);
     for (const key in payload) {
       formData.append(key, payload[key]);
     }
