@@ -48,7 +48,8 @@ async function downloadFile(url, destinationPath) {
 }
 
 async function audioTranscription(audioUrl, apiUrl, payload) {
-  const tempFilePath = join('/tmp/tempfile.txt');
+  const filename = getFilename(audioUrl);
+  const tempFilePath = join('/tmp/' + filename);
 
   try {
     await downloadFile(audioUrl, tempFilePath);
@@ -72,6 +73,14 @@ async function audioTranscription(audioUrl, apiUrl, payload) {
   } catch (error) {
     console.error('Error:', error);
   }
+}
+
+function getFilename(url) {
+  const url_components = url.split('/');
+  const full_filename = url_components[-1];
+  const clean_filename = full_filename.split('?')[0];
+  
+  return clean_filename;
 }
 
 export default app;
