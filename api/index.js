@@ -6,6 +6,16 @@ const app = express();
 
 app.use(express.json());
 
+app.use((req, res, next) => {
+  const key = req.get('API-KEY');
+
+  if(key === process.env.API_KEY) {
+    next();
+  } else {
+    res.status(401).send('Unauthorized')
+  }
+})
+
 app.get('/api', (req, res) => {
   res.end('Hello!');
 });
