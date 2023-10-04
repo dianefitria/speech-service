@@ -48,7 +48,7 @@ async function audioTranscription(audioUrl, apiUrl, payload) {
   const filename = getFilename(audioUrl);
 
   try {
-    const fileData = await axios.get(audioUrl);
+    const fileData = await downloadFile(audioUrl);
     
     const formData = new FormData();
     formData.append('file', fileData);
