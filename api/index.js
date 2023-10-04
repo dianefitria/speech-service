@@ -51,7 +51,7 @@ async function audioTranscription(audioUrl, apiUrl, payload) {
     const fileData = await downloadFile(audioUrl);
     
     const formData = new FormData();
-    formData.append('file', fileData);
+    formData.append('file', fileData, filename);
     for (const key in payload) {
       formData.append(key, payload[key]);
     }
@@ -74,7 +74,7 @@ function getFilename(url) {
   const full_filename = url_components[(url_components.length - 1)];
   const clean_filename = full_filename.split('?')[0];
   
-  return clean_filename;
+  return clean_filename + '.oga';
 }
 
 export default app;
