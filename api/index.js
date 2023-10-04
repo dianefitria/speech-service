@@ -48,10 +48,10 @@ async function audioTranscription(audioUrl, apiUrl, payload) {
   const filename = getFilename(audioUrl);
 
   try {
-    const fileData = await downloadFile(audioUrl);
+    const fileData = await axios.get(audioUrl);
     
     const formData = new FormData();
-    formData.append('file', fileData, filename);
+    formData.append('file', fileData);
     for (const key in payload) {
       formData.append(key, payload[key]);
     }
