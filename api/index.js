@@ -146,6 +146,8 @@ app.post('/api/sspp/unlock-account', async (req, res) => {
 app.post('/api/sspp/send-otp', async (req, res) => {
   await uiPathAuth();
 
+  console.log(req.body.usernam);
+
   const response = await axios.get(uiPathBaseUrl + '/QueueItems', {
     params: {
       '$filter': 'contains(Reference,\''+req.body.username+'\')'
