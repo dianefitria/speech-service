@@ -175,7 +175,7 @@ app.post('/api/sspp/send-otp', async (req, res) => {
         'Progress': element['Progress']
       }
 
-      await axios.put(uiPathBaseUrl + '/QueueItems(' + element.id + ')', 
+      await axios.put(uiPathBaseUrl + '/QueueItems(' + element['Id'] + ')', 
         payload, 
         {
           headers: {
