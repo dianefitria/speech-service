@@ -83,15 +83,17 @@ const uiPathBaseUrl = 'https://cloud.uipath.com/keyrehhrqarg/DefaultTenant/orche
 
 async function uiPathAuth() {
   try {
-    const response = await axios.post(uiPathAuthUrl, {
-      'grant_type': 'refresh_token',
-      'client_id': process.env.UIPATH_CLIENT_ID,
-      'refresh_token': process.env.UIPATH_USER_KEY
-    }, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await axios.post(uiPathAuthUrl, 
+      {
+        'grant_type': 'refresh_token',
+        'client_id': process.env.UIPATH_CLIENT_ID,
+        'refresh_token': process.env.UIPATH_USER_KEY
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
     if(response.data) {
       accessToken = response.data.access_token;
@@ -146,11 +148,9 @@ app.post('/api/sspp/unlock-account', async (req, res) => {
 app.post('/api/sspp/send-otp', async (req, res) => {
   await uiPathAuth();
 
-  console.log(req.body.username);
-
   const response = await axios.get(uiPathBaseUrl + '/QueueItems', {
     params: {
-      '$filter': 'contains(Reference,\''+req.body.username+'\')'
+      '$filter': 'contains(Reference,\'' + req.body.username + '\') and Status eq \'New\''
     },
     headers: {
       'Authorization': 'Bearer ' + accessToken,
@@ -158,7 +158,42 @@ app.post('/api/sspp/send-otp', async (req, res) => {
     },
   });
 
-  res.send(response.data)
+  if(response.data) {
+    for (let index = 0; index < response.data['@odata.count']; index++) {
+      const element = response.data.value[index];
+      const payload = {
+        'Name': 'OTPQueue',
+        'Priority': element['Priority'],
+        'SpecificContent': {
+            'username': element['SpecificContent']['username'],
+            'otp': req.body.otp
+        },
+        'DeferDate': element['DeferDate'],
+        'DueDate': element['DueDate'],
+        'RiskSlaDate': element['RiskSlaDate'],
+        'Reference': element['Reference'],
+        'Progress': element['Progress']
+      }
+
+      await axios.put(uiPathBaseUrl + '/QueueItems(' + element.id + ')', 
+        payload, 
+        {
+          headers: {
+            'Authorization': 'Bearer ' + accessToken,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+
+    res.send({
+      status: 'Success'
+    })
+  } else {
+    res.send({
+      status: 'Failed'
+    })
+  }
 });
 
 export default app;
