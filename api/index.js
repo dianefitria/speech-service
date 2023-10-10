@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { response } from 'express';
 import axios from 'axios';
 import FormData from 'form-data';
 
@@ -123,14 +123,31 @@ app.post('/api/sspp/reset-password', async (req, res) => {
     }
   }
 
-  res.send(payload);
+  const response = await axios.post(uiPathBaseUrl + '/Jobs/UiPath.Server.Configuration.OData.StartJobs', 
+    payload, 
+    {
+      headers: {
+        'Authorization': 'Bearer ' + accessToken,
+        'Content-Type': 'application/json',
+        'X-UIPATH-OrganizationUnitId': 'FolderKey',
+        'X-UIPATH-FolderKey': process.env.UIPATH_FOLDER_KEY
+      },
+    }
+  );
+
+  if(response.data) {
+    res.send(response.data);
+  } else {
+    res.send({
+      status: 'Failed'
+    })
+  }
 });
 
 app.post('/api/sspp/unlock-account', async (req, res) => {
   var input = {
     'username': req.body.username,
-    'security': req.body.security_answer,
-    'password': req.body.password
+    'security': req.body.security_answer
   }
   var payload = {
     'startInfo': {
@@ -142,7 +159,25 @@ app.post('/api/sspp/unlock-account', async (req, res) => {
     }
   }
 
-  res.send(payload);
+  const response = await axios.post(uiPathBaseUrl + '/Jobs/UiPath.Server.Configuration.OData.StartJobs', 
+    payload, 
+    {
+      headers: {
+        'Authorization': 'Bearer ' + accessToken,
+        'Content-Type': 'application/json',
+        'X-UIPATH-OrganizationUnitId': 'FolderKey',
+        'X-UIPATH-FolderKey': process.env.UIPATH_FOLDER_KEY
+      },
+    }
+  );
+
+  if(response.data) {
+    res.send(response.data);
+  } else {
+    res.send({
+      status: 'Failed'
+    })
+  }
 });
 
 app.post('/api/sspp/send-otp', async (req, res) => {
