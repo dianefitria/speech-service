@@ -151,7 +151,7 @@ app.post('/api/sspp/send-otp', async (req, res) => {
       '$filter': 'contains(Reference,\''+req.body.username+'\')'
     },
     headers: {
-      'Authorization': 'Bearer ' + process.env.OPENAI_API_KEY,
+      'Authorization': 'Bearer ' + accessToken,
       'Content-Type': 'application/json'
     },
   });
