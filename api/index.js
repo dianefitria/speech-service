@@ -108,6 +108,8 @@ async function uiPathStartJob() {
 }
 
 app.post('/api/sspp/reset-password', async (req, res) => {
+  await uiPathAuth();
+
   var input = {
     'username': req.body.username,
     'security': req.body.security_answer,
@@ -145,6 +147,8 @@ app.post('/api/sspp/reset-password', async (req, res) => {
 });
 
 app.post('/api/sspp/unlock-account', async (req, res) => {
+  await uiPathAuth();
+  
   var input = {
     'username': req.body.username,
     'security': req.body.security_answer
