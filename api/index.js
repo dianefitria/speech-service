@@ -181,6 +181,8 @@ app.post('/api/sspp/send-otp', async (req, res) => {
           headers: {
             'Authorization': 'Bearer ' + accessToken,
             'Content-Type': 'application/json',
+            'X-UIPATH-OrganizationUnitId': 'FolderKey',
+            'X-UIPATH-FolderKey': process.env.UIPATH_FOLDER_KEY
           },
         }
       );
