@@ -77,4 +77,86 @@ function getFilename(url) {
   return clean_filename + '.oga';
 }
 
+let accessToken = '';
+const uiPathAuthUrl = 'https://account.uipath.com/oauth/token';
+const uiPathBaseUrl = 'https://cloud.uipath.com/keyrehhrqarg/DefaultTenant/orchestrator_/odata';
+
+async function uiPathAuth() {
+  try {
+    const response = await axios.post(uiPathAuthUrl, {
+      'grant_type': 'refresh_token',
+      'client_id': process.env.UIPATH_CLIENT_ID,
+      'refresh_token': process.env.UIPATH_USER_KEY
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if(response.data) {
+      accessToken = response.data.access_token;
+    }
+  } catch (error) {
+    throw new Error(`Error on uiPathAuth: ${error.message}`);
+  }
+}
+
+async function uiPathStartJob() {
+
+}
+
+app.post('/api/sspp/reset-password', async (req, res) => {
+  var input = {
+    'username': req.body.username,
+    'security': req.body.security_answer,
+    'password': req.body.password
+  }
+  var payload = {
+    'startInfo': {
+      'ReleaseKey': process.env.UIPATH_RESET_KEY,
+      'RobotIds': [1388861],
+      'JobsCount': 0,
+      'Strategy': 'Specific',
+      'InputArguments': JSON.stringify(input)
+    }
+  }
+
+  res.send(payload);
+});
+
+app.post('/api/sspp/unlock-account', async (req, res) => {
+  var input = {
+    'username': req.body.username,
+    'security': req.body.security_answer,
+    'password': req.body.password
+  }
+  var payload = {
+    'startInfo': {
+      'ReleaseKey': process.env.UIPATH_UNLOCK_KEY,
+      'RobotIds': [1388861],
+      'JobsCount': 0,
+      'Strategy': 'Specific',
+      'InputArguments': JSON.stringify(input)
+    }
+  }
+
+  res.send(payload);
+});
+
+app.post('/api/sspp/send-otp', async (req, res) => {
+  await uiPathAuth();
+
+  const response = await axios.get(uiPathBaseUrl + '/QueueItems', {
+    params: {
+      '$filter': 'contains(Reference,\''+req.body.username+'\')'
+    },
+    headers: {
+      'Authorization': 'Bearer ' + process.env.OPENAI_API_KEY,
+      'Content-Type': 'application/json'
+    },
+  });
+
+  res.send(response.data)
+});
+
 export default app;
