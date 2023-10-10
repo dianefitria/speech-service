@@ -146,7 +146,7 @@ app.post('/api/sspp/unlock-account', async (req, res) => {
 app.post('/api/sspp/send-otp', async (req, res) => {
   await uiPathAuth();
 
-  console.log(req.body.usernam);
+  console.log(req.body.username);
 
   const response = await axios.get(uiPathBaseUrl + '/QueueItems', {
     params: {
