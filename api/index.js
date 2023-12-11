@@ -1,6 +1,7 @@
 import express, { response } from 'express';
 import axios from 'axios';
 import FormData from 'form-data';
+import fs from 'fs/promises';
 
 const app = express();
 
@@ -235,6 +236,51 @@ app.post('/api/sspp/send-otp', async (req, res) => {
       status: 'Failed'
     })
   }
+});
+
+
+const counterFilePath = process.cwd() + '/api/counter.json';
+// const counterFilePath = 'counter.json';
+
+// Function to read data from the file
+const readDataFromFile = async () => {
+  try {
+    const data = await fs.readFile(counterFilePath, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    // If the file doesn't exist or an error occurs, return default values
+    return { counter: 0, currentDate: new Date().toISOString().split('T')[0] };
+  }
+};
+
+// Function to write data to the file
+const writeDataToFile = async (data) => {
+  const jsonData = JSON.stringify(data);
+  await fs.writeFile(counterFilePath, jsonData, 'utf-8');
+};
+
+const initialData = await readDataFromFile();
+let counter = initialData.counter;
+let currentDate = initialData.currentDate;
+
+app.get('/api/edvc/counter', async (req, res) => {
+  // Check if the date has changed
+  const today = new Date().toISOString().split('T')[0];
+  if (today !== currentDate) {
+    // If the date has changed, reset the counter and update the current date
+    counter = 0;
+    currentDate = today;
+  }
+
+  // Increment the counter
+  counter++;
+
+  // Write the updated data to the file
+  await writeDataToFile({ counter, currentDate });
+
+  const UID = `${currentDate}-${counter.toString().padStart(3, '0')}`
+  // Send the updated counter as the response
+  res.json({ UID });
 });
 
 export default app;
