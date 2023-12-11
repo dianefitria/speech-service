@@ -241,11 +241,10 @@ app.post('/api/sspp/send-otp', async (req, res) => {
 import { get } from '@vercel/edge-config';
 
 function formatDateToYYMMDD(date) {
-  return date.toLocaleDateString('en-US', {
-    year: '2-digit',
-    month: '2-digit',
-    day: '2-digit'
-  }).replace(/\//g, '');
+  const year = date.getFullYear() % 100;
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${year}${month}${day}`;
 }
 
 // Function to write data to the file
