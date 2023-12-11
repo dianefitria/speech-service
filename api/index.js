@@ -238,34 +238,53 @@ app.post('/api/sspp/send-otp', async (req, res) => {
   }
 });
 
+import { get } from '@vercel/edge-config';
 
-const counterFilePath = process.cwd() + '/api/counter.json';
-// const counterFilePath = 'counter.json';
+function formatDateToYYMMDD(date) {
+  return date.toLocaleDateString('en-US', {
+    year: '2-digit',
+    month: '2-digit',
+    day: '2-digit'
+  }).replace(/\//g, '');
+}
 
-// Function to read data from the file
-const readDataFromFile = async () => {
+// Function to write data to the file
+const writeDataToDB = async (data) => {
   try {
-    const data = await fs.readFile(counterFilePath, 'utf-8');
-    return JSON.parse(data);
+    const updateEdgeConfig = await fetch(
+      `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items`,
+      {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${process.env.VERCEL_API_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items: [
+            {
+              operation: 'update',
+              key: 'edvc_counter',
+              value: data,
+            },
+          ],
+        }),
+      },
+    );
+    const result = await updateEdgeConfig.json();
+    console.log(result);
   } catch (error) {
-    // If the file doesn't exist or an error occurs, return default values
-    return { counter: 0, currentDate: new Date().toISOString().split('T')[0] };
+    console.log(error);
   }
 };
 
-// Function to write data to the file
-const writeDataToFile = async (data) => {
-  const jsonData = JSON.stringify(data);
-  await fs.writeFile(counterFilePath, jsonData, 'utf-8');
-};
-
-const initialData = await readDataFromFile();
-let counter = initialData.counter;
-let currentDate = initialData.currentDate;
 
 app.get('/api/edvc/counter', async (req, res) => {
+  const initialData = await get('edvc_counter');
+
+  let counter = initialData.counter;
+  let currentDate = initialData.currentDate;
   // Check if the date has changed
-  const today = new Date().toISOString().split('T')[0];
+  const today = formatDateToYYMMDD(new Date());
   if (today !== currentDate) {
     // If the date has changed, reset the counter and update the current date
     counter = 0;
@@ -276,9 +295,9 @@ app.get('/api/edvc/counter', async (req, res) => {
   counter++;
 
   // Write the updated data to the file
-  await writeDataToFile({ counter, currentDate });
+  await writeDataToDB({ counter, currentDate });
 
-  const UID = `${currentDate}-${counter.toString().padStart(3, '0')}`
+  const UID = `${currentDate}-${counter.toString().padStart(4, '0')}`
   // Send the updated counter as the response
   res.json({ UID });
 });
